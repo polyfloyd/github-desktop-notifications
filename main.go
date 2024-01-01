@@ -38,7 +38,7 @@ func main() {
 
 	idMapping := map[string]uint32{}
 
-	for range time.Tick(time.Minute * 10) {
+	for {
 		ctx := context.Background()
 		notifications, _, err := client.Activity.ListNotifications(ctx, &github.NotificationListOptions{All: true})
 		if err != nil {
@@ -48,17 +48,18 @@ func main() {
 
 		for i := len(notifications) - 1; i >= 0; i-- {
 			not := notifications[i]
-			if *not.Unread {
+			nid, ok := idMapping[*not.ID]
+			if !ok && *not.Unread {
 				nt := githubToNotification(not)
 				nid, _ := nt.Show()
 				idMapping[*not.ID] = nid
-			} else {
-				if nid, ok := idMapping[*not.ID]; ok {
-					notify.CloseNotification(nid)
-					delete(idMapping, *not.ID)
-				}
+			} else if ok && !*not.Unread {
+				notify.CloseNotification(nid)
+				delete(idMapping, *not.ID)
 			}
 		}
+
+		time.Sleep(time.Minute * 10)
 	}
 }
 
