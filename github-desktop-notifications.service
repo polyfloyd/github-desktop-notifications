@@ -1,0 +1,11 @@
+[Unit]
+Description=GitHub Notifications
+ConditionUser=!root
+ConditionUser=!@system
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/local/bin/github-desktop-notifications
+
+[Install]
+WantedBy=default.target
